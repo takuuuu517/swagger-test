@@ -2,8 +2,7 @@ openapi: 3.0.0
 info:
   version: 0.0.0
   title: RESTful API
-  description: >-
-    バックエンドAPI
+  description: バックエンドAPI
 servers:
   - url: 'http://{host}:8081/api/v1'
     description: go service api server endpoint application
