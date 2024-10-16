@@ -108,17 +108,8 @@ paths:
                     example: 'http://aaaaaa.com'
         '204':
           description: 送り状が存在しない
-        '400':
-          description: 入力エラー
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errCode:
-                    type: integer
-                    format: number
-                    example: 100
+        '404':
+          description: 存在しない
         '500':
           description: サーバーエラー
           content:
