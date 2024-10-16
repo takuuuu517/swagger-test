@@ -1,46 +1,44 @@
 openapi: 3.0.0
 info:
   version: 0.0.0
-  title: RESTful API
-  description: バックエンドAPI
-servers:
-  - url: 'http://{host}:8081/api/v1'
-    description: go service api server endpoint application
-    variables:
-      host:
-        default: localhost
-        enum:
-          - localhost
+  title: Shipping Label API
+  description: 送り状発行API
 paths:
-  /register:
+  /issue:
     post:
       tags:
-        - user
-      summary: ユーザ登録
-      description: |
-        クライアントが入力する情報をもとにユーザ情報を登録する
+        - shippingLabels
+      summary: 送り状登録
+      description: クライアントが入力する情報をもとにユーザ情報を登録する
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: 山田太郎
-                email:
-                  type: string
-                  format: email
-                  example: yamada@hoge.hoge
-                password:
-                  type: string
-                  format: password
-                  example: qwerty123456789
-              required:
-                - name
-                - email
-                - password
+              type: array
+              items:
+                type: object
+                required:
+                  - deliveryCode
+                properties:
+                  deliveryCode:
+                    description: 配送先の店舗コード
+                    type: string
+                    example: '1234567890'
+                  deliveryDate:
+                    description: 配送希望日
+                    type: string
+                    format: date
+                    example: '2025-01-01'
+                  shippingDate:
+                    description: 配送日
+                    type: string
+                    format: date
+                    example: '2025-01-05'
+                  note:
+                    description: 送り状に記載するメモ
+                    type: string
+                    example: 客注での配送です
       responses:
         '200':
           description: ユーザ情報登録成功
@@ -48,71 +46,87 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  statusCode:
-                    type: integer
-                    format: number
-                    example: 200
-                  method:
-                    type: string
-                    example: 'POST'
-                  message:
-                    type: string
-                    example: 'ユーザ登録に成功しました。'
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 1
                 required:
-                  - statusCode
-                  - method
-                  - message
-                  - data
-        '409':
-          description: |
-            登録済みのメールアドレス
+                  - shippingLabelId
+                  - trackingNumber
+                properties:
+                  shippingLabelId:
+                    type: string
+                    example: '1234567890'
+                  trackingNumber:
+                    type: string
+                    example: '1234567890'
+        '400':
+          description: 入力エラー
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  statusCode:
+                  errCode:
                     type: integer
                     format: number
-                    example: 409
-                  method:
-                    type: string
-                    example: 'POST'
-                  message:
-                    type: string
-                    example: '登録済みのメールアドレスです。'
-                  data:
-                    type: object
-                    example: null
+                    example: 100
         '500':
-          $ref: '#/components/responses/500Error'
-components:
-  responses:
-    500Error:
-      description: |
-        サーバー上のエラー
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              statusCode:
-                type: integer
-                format: int64
-                example: '500'
-              method:
-                type: string
-                example: 'POST'
-              message:
-                type: string
-                example: 'サーバー側で何らかのエラーが発生しました。'
-              data:
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
                 type: object
-                example: null
+                properties:
+                  errCode:
+                    type: integer
+                    format: number
+                    example: 100
+  /download:
+    get:
+      tags:
+        - shippingLabels
+      summary: 送り状取得
+      description: shippingLabelIdをもとに送り状をダウンロードする
+      parameters:
+        - in: query
+          name: shippingLabelId
+          description: 送り状ID
+          required: true
+          schema:
+            type: string
+            example: '1234567890'
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - download_url
+                properties:
+                  download_url:
+                    type: string
+                    format: uri
+                    example: 'http://aaaaaa.com'
+        '204':
+          description: 送り状が存在しない
+        '400':
+          description: 入力エラー
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errCode:
+                    type: integer
+                    format: number
+                    example: 100
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errCode:
+                    type: integer
+                    format: number
+                    example: 100
